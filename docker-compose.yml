@@ -1,0 +1,27 @@
+version: "3"
+services:
+  mongodb:
+    image: mongo:latest
+    ports:
+    - 27017:27017
+    volumes:
+      - ./data:/data/db
+    container_name: mongo
+    networks:
+      - app_network
+  express:
+    build:
+      context: ./api
+      dockerfile: ./api/api-dockerfile
+    image: "alma-connector-api:latest"
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+    volumes:
+      - ./api:/api
+    networks:
+      - app_network
+networks:
+  app_network:
+    driver: bridge
