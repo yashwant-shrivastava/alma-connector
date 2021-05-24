@@ -6,6 +6,8 @@ const app = express();
 
 connectDB().then(r => console.log(r));
 
+app.use(express.json());
+
 // user routes
 app.use("/api/user", user);
 
