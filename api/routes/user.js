@@ -5,7 +5,7 @@ const gravatar = require('gravatar');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const config = require('config');
-const getJWTToken = require('../middlewares/auth_token');
+const getUserFromToken = require('../middlewares/auth_token');
 const jwtService = require('../services/jwt');
 
 const User = require('../models/user');
@@ -28,49 +28,40 @@ router.post('/register', [
   const password = req.body.password;
 
   try {
-    let user = await User.findOne({email});
-    if (user) {
-      res.status(422).json({errors: [{"msg": "User Already Exists"}]});
-    }
-
-    const avatar = gravatar.url(email, {
-      s: '200',
-      r: 'pg',
-      d: 'mm'
-    });
-
-    user = new User({
-      name,
-      email,
-      age,
-      password,
-      avatar
-    });
-
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
-
-    await user.save();
-
-    jwt.sign(
-      { user: user.id },
-      config.get('JWT_SECRET_TOKEN'),
-      { expiresIn: 3600},
-      (err, token) => {
-          if (err) {
-              throw err;
-          }
-          res.json({token});
+      let user = await User.findOne({email});
+      if (user) {
+        res.status(422).json({errors: [{"msg": "User Already Exists"}]});
       }
-    );
+
+      const avatar = gravatar.url(email, {
+        s: '200',
+        r: 'pg',
+        d: 'mm'
+      });
+
+      user = new User({
+        name,
+        email,
+        age,
+        password,
+        avatar
+      });
+
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+
+      await user.save();
+
+      let jwt = new jwtService();
+      let result = jwt.getJWTTokenForUser(user.id);
+      res.json({token});
   } catch (err) {
-    console.log(err);
       res.status(500).json({errors: [{"msg": "Server Error"}]});
   }
 });
 
 // get User from auth Token
-router.get('/getUser', getJWTToken, async function(req, res, next) {
+router.get('/getUser', getUserFromToken, async function(req, res, next) {
     let user_id = req.user;
     try {
         let user = await User.findById(user_id, '-password', function(err, result) {
@@ -80,7 +71,6 @@ router.get('/getUser', getJWTToken, async function(req, res, next) {
             res.status(200).json({result});
         });
     } catch (err) {
-        console.log(err);
         res.status(500).send('Server Error');
     }
 
@@ -124,18 +114,9 @@ router.get('/signIn', [
                 let jwt = new jwtService();
                 let result = jwt.getJWTTokenForUser(user.id);
 
-                console.log(result);
-                // console.log(token);
-                // console.log(message);
-
-                // if (!status) {
-                //     res.status(200).json({message});
-                // }
-
                 res.status(200).json({result});
             });
         } catch (err) {
-            console.log(err);
             res.status(500).json({'message': 'Server Error'});
         }
     }

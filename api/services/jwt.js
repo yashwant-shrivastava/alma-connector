@@ -12,24 +12,14 @@ class JWT {
 
         try {
             let userToken = null;
-            jwt.sign(
-                { user: user_id },
-                config.get('JWT_SECRET_TOKEN'),
-                { expiresIn: 3600},
-                (err, token) => {
-                    if (err) {
-                        throw err;
-                    }
-
-                    userToken = token;
-                }
-            )
-
             return {
                 status: true,
-                token: userToken
-            };
-
+                token: jwt.sign(
+                    { user: user_id },
+                    config.get('JWT_SECRET_TOKEN'),
+                    { expiresIn: 3600 }
+                )
+            }
         } catch (err) {
             return {
                 status: false,

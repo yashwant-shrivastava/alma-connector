@@ -11,7 +11,7 @@ const validate = function (req, res, next) {
         req.user = user;
         next();
     } catch (err) {
-        res.status(500).json({'message': 'Server Error'});
+        res.status(500).json({'status': false, 'message': err.message});
     }
 }
 
