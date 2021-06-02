@@ -7,6 +7,8 @@ const jwt = require('jsonwebtoken');
 const config = require('config');
 const getUserFromToken = require('../middlewares/auth_token');
 const jwtService = require('../services/jwt');
+const userController = require('../controllers/user');
+const Logger = require("../utils/logger");
 
 const User = require('../models/user');
 
@@ -114,6 +116,8 @@ router.get('/signIn', [
                 let jwt = new jwtService();
                 let result = jwt.getJWTTokenForUser(user.id);
 
+                const logger = new Logger(__filename);
+                logger.error(result);
                 res.status(200).json({result});
             });
         } catch (err) {
@@ -122,5 +126,8 @@ router.get('/signIn', [
     }
 )
 
+
+//delete user and profile
+router.post("/delete", getUserFromToken, )
 
 module.exports = router;
