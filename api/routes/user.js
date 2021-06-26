@@ -3,12 +3,8 @@ const router = express.Router();
 const { check, validationResult } = require('express-validator');
 const gravatar = require('gravatar');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const config = require('config');
-const getUserFromToken = require('../middlewares/auth_token');
 const jwtService = require('../services/jwt');
 const userController = require('../controllers/user');
-const Logger = require("../utils/logger");
 
 const User = require('../models/user');
 
@@ -56,35 +52,25 @@ router.post('/register', [
 
       let jwt = new jwtService();
       let result = jwt.getJWTTokenForUser(user.id);
-      res.json({token});
+      if (result.status && result.token) {
+          return res.status(200).json({'status': true, 'jwt': result.token});
+      }
+
+      return res.status(200).json({'status': false, 'message': "Unable to register the user"});
   } catch (err) {
       res.status(500).json({errors: [{"msg": "Server Error"}]});
   }
 });
 
 // get User from auth Token
-router.get('/getUser', getUserFromToken, async function(req, res, next) {
-    let user_id = req.user;
-    try {
-        let user = await User.findById(user_id, '-password', function(err, result) {
-            if (err) {
-                throw err;
-            }
-            res.status(200).json({result});
-        });
-    } catch (err) {
-        res.status(500).send('Server Error');
-    }
-
-});
-
+router.get('/getUser', userController.validate('userIdFromToken'), userController.getUserById);
 
 // get User from Email and Password
 router.get('/signIn', [
       check('email', 'Please enter a valid email').isEmail(),
       check('password', 'Please enter a password').exists()
     ],
-    async function (req, res, next) {
+    async function (req, res) {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
           return res.status(422).json({errors: errors.array()});
@@ -94,7 +80,7 @@ router.get('/signIn', [
         const password = req.query.password;
 
         try {
-            let user = await User.findOne({email}, async function (err, user) {
+             await User.findOne({email}, async function (err, user) {
                 if (err) {
                     throw err;
                 }
@@ -115,9 +101,6 @@ router.get('/signIn', [
 
                 let jwt = new jwtService();
                 let result = jwt.getJWTTokenForUser(user.id);
-
-                const logger = new Logger(__filename);
-                logger.error(result);
                 res.status(200).json({result});
             });
         } catch (err) {
@@ -126,8 +109,7 @@ router.get('/signIn', [
     }
 )
 
-
 //delete user and profile
-router.post("/delete", getUserFromToken, )
+router.post("/delete", userController.validate('userIdFromToken'), userController.deleteUser);
 
 module.exports = router;

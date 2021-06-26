@@ -4,15 +4,14 @@ const db = config.get('MONGO_URI');
 
 const connectDB = async () => {
     try {
-        console.log(db);
         await mongoose.connect(db, {
             "useNewUrlParser": true,
             "useCreateIndex": true,
-            "useUnifiedTopology": true
+            "useUnifiedTopology": true,
+            "useFindAndModify": false
         });
         return "Connected to DB";
     } catch (err) {
-      return "Not able to connect to db";
         process.exit(1);
     }
 }

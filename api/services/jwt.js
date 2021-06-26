@@ -11,7 +11,6 @@ class JWT {
         }
 
         try {
-            let userToken = null;
             return {
                 status: true,
                 token: jwt.sign(

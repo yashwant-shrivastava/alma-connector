@@ -1,5 +1,4 @@
 const UserProfile = require('../services/profile');
-const User = require('../services/user');
 const getUserFromToken = require('../middlewares/auth_token');
 const { check, validationResult } = require('express-validator');
 
@@ -12,14 +11,10 @@ exports.validate = (method) => {
                getUserFromToken
            ];
         }
-        break;
 
         case 'userIdFromToken': {
-            return [
-                getUserFromToken
-            ];
+            return getUserFromToken
         }
-        break;
     }
 }
 
@@ -150,7 +145,7 @@ exports.createNewProfile = async function (req, res) {
 exports.getLoggedInUserProfile = async function(req, res) {
     let userId = req.user;
     if (!userId) {
-        return res.status(200).json({'status': false, 'mesage': 'Invalid User Id'});
+        return res.status(200).json({'status': false, 'message': 'Invalid User Id'});
     }
 
     let userProfile = new UserProfile(userId);
@@ -177,4 +172,56 @@ exports.getProfileForInstitute = async function(req, res) {
 
     return res.status(200).json({'status': true, 'profiles': profiles});
 
+}
+
+exports.deleteProfile = async function(req, res) {
+    const userId = req.user;
+
+    if (!userId) {
+        return res.status(200).json({'status': false, 'message': "User id not found"});
+    }
+
+    let profile = new UserProfile(userId);
+    let result = await profile.deleteUserProfile();
+
+    if (!result) {
+        return res.status(200).json({'status': false, 'message': "Profile not deleted"});
+    }
+
+    return res.status(200).json({'status': true, 'message': "profile deleted successfully"});
+}
+
+exports.updateProfileExperiences = async function(req, res) {
+    const userId = req.user;
+    const experiences = req.body.experience;
+
+    if (!userId) {
+        return res.status(200).json({'status': false, 'message': 'User Id not found'});
+    }
+
+    let profile = new UserProfile(userId);
+    let result = await profile.updateProfileExperiences(experiences);
+
+    if (result) {
+        return res.status(200).json({'status': true, 'profile': result});
+    }
+    return res.status(200).json({'status': false, 'message': "Unable to update user profile experience"});
+}
+
+exports.updateProfileEducation = async function(req, res) {
+    const userId = req.user;
+    const education = req.body.education;
+
+    if (!userId) {
+        return res.status(200).json({'status': false, 'message': 'User Id not found'});
+    }
+
+    let profile = new UserProfile(userId);
+    let result = await profile.updateProfileEducation(education);
+
+    if (result) {
+        return res.status(200).json({'status': true, 'profile': result});
+    }
+
+    return res.status(200).json({'status': false, 'message': "Unable to update user profile education"});
 }
