@@ -4,7 +4,8 @@ LABEL version="1.0"
 LABEL description="This is the base docker image for react app."
 LABEL maintainer = ["yash14shrivastava@gmail.com"]
 
-WORKDIR /app
+RUN mkdir -p /client
+WORKDIR /client
 
 COPY ["package.json", "package-lock.json", "./"]
 

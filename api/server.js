@@ -6,6 +6,7 @@ const geo = require("./routes/geo");
 const institute = require("./routes/institute");
 const post = require('./routes/post');
 const Logger = require('./utils/logger');
+const path = require('path');
 const logger = new Logger(__filename);
 
 const app = express();
@@ -28,6 +29,10 @@ app.use("/api/institute", institute);
 
 // posts routes
 app.use("/api/post", post);
+
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname + '/../client/public/index.html'));
+});
 
 // index
 app.get("/", (req, res) => {res.send("Working the express app inside docker with hot reloading :)")});

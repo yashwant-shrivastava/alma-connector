@@ -13,15 +13,16 @@ services:
     build:
       context: ./api
       dockerfile: ./api/api-dockerfile
-    image: "alma-connector-api:latest"
+    image: alma-connector-api:latest
     ports:
-      - "5000:5000"
+      - 5000:5000
     depends_on:
       - mongodb
     volumes:
       - ./api:/api
     networks:
       - app_network
+    container_name: api
   mongoex:
     image: mongo-express
     environment:
@@ -33,11 +34,23 @@ services:
       - ME_CONFIG_BASICAUTH_USERNAME=admin
       - ME_CONFIG_BASICAUTH_PASSWORD=pass
     ports:
-      - "8081:8081"
+      - 8081:8081
     links:
       - mongodb
     networks:
       - app_network
+  react:
+    build:
+      context: ./client
+      dockerfile: ./client/client-dockerfile
+    image: alma-connector-client:latest
+    ports:
+      - 3000:3000
+    volumes:
+      - ./client:/client
+    networks:
+      - app_network
+    container_name: client
 networks:
   app_network:
     driver: bridge
